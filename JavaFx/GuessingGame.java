@@ -147,25 +147,25 @@ public class GuessingGame extends Application
 
     private VBox formatTopHalf(int stageNumber)
     {
-        if(stageNumber == 1)
+        if(stageNumber == Stage.FIRST_GUESS.stageNum)
         {
             displayText = formatText(Stage.FIRST_GUESS.stageText);
         }
-        else if(stageNumber == 2)
+        else if(stageNumber == Stage.TOO_LOW.stageNum)
         {
             displayText = formatText(Stage.TOO_LOW.stageText);
         }
-        else if(stageNumber == 3)
+        else if(stageNumber == Stage.TOO_HIGH.stageText)
         {
             displayText = formatText(Stage.TOO_HIGH.stageText);
         }
-        else if(stageNumber == 4)
+        else if(stageNumber == Stage.PLAY_AGAIN.stageText)
         {
             displayText = formatText(Stage.PLAY_AGAIN.stageText);
         }
         else
         {
-            throw new IllegalArgumentException("You only have two valid arguments, integers 1 and 2");
+            throw new IllegalArgumentException("You can only enter numeric values 1 to 4");
         }
         VBox vBox = new VBox(displayText);
         vBox.setAlignment(Pos.CENTER);
