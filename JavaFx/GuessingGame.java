@@ -1,4 +1,6 @@
 package JavaFx;
+
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
@@ -21,8 +23,6 @@ public class GuessingGame extends Application
 {
     private static final String FONT_NAME = "roboto mono";
     private static final double FONT_SIZE_MEDIUM = 30;
-    private static final int SCENE_WIDTH = 400;
-    private static final int SCENE_HEIGHT = 260;
     private javafx.stage.Stage primaryStage;
     private BorderPane rootNode;
     private VBox nestedTopHalf;
@@ -30,27 +30,26 @@ public class GuessingGame extends Application
     private Scene scene;
     private int randomInt;
     private Text displayText;
-    private Button stage1GuessButton, stage2YesButton, stage2NoButton;
+    private Button buttonGuessNumber, buttonPlayAgainYes, buttonPlayAgainNo;
     private TextField stage1InputField;
 
     enum Stage
     {
-        FIRST_GUESS(1, "Guess a number\nbetween\n1 to 100\n"),
-        TOO_LOW(2, "You guessed too low\nguess again"),
-        TOO_HIGH(3, "You guessed too high\nguess again"),
-        PLAY_AGAIN(4, "Congratulations!!!!\nWould you like to\ncontinue?");
-        private int stageNum;
+        FIRST_GUESS("Guess a number\nbetween\n1 to 100\n"),
+        TOO_LOW("You guessed too low\nguess again"),
+        TOO_HIGH("You guessed too high\nguess again"),
+        PLAY_AGAIN("Congratulations!!!!\nWould you like to\ncontinue?");
         private String stageText;
-        Stage(int stageNum, String stageText)
-        {
-            this.stageNum = stageNum;
-            this.stageText = stageText;
-        }
-        @Override
-        public String toString()
-        {
-            return stageText;
-        }
+        Stage(String stageText) {this.stageText = stageText;}
+        @Override public String toString() {return stageText;}
+    }
+
+    enum SceneSize{
+        WIDTH(400),
+        HEIGHT(260);
+        private int size;
+        SceneSize(int size) {this.size = size;}
+        public int getLength(){return size;}
     }
 
     enum HexCode
@@ -59,18 +58,17 @@ public class GuessingGame extends Application
         FONT("#43B156");
         private String hexCode;
         HexCode(String hexCode){this.hexCode = hexCode;}
+        @Override public String toString(){return hexCode;}
     }
 
-    enum ButtonLabels
+    enum ButtonLabel
     {
         YES("Yes"),
         NO("No"),
         GUESS("Guess");
         private String buttonName;
-        ButtonLabels(String buttonName)
-        {
-            this.buttonName = buttonName;
-        }
+        ButtonLabel(String buttonName) {this.buttonName = buttonName;}
+        @Override  public String toString(){return buttonName;}
     }
 
     private void compareNumbers(ActionEvent event)
@@ -78,37 +76,20 @@ public class GuessingGame extends Application
         int usersGuess = Integer.parseInt(stage1InputField.getText());
         if(randomInt != usersGuess)
         {
-            if(usersGuess < randomInt)
-            {
-                startStage(Stage.TOO_LOW.stageNum);
-            }
-            else
-            {
-                startStage(Stage.TOO_HIGH.stageNum);
-            }
+            startStage((usersGuess < randomInt) ? Stage.TOO_LOW : Stage.TOO_HIGH );
         }
         else
         {
-            startStage(Stage.PLAY_AGAIN.stageNum);
+            startStage(Stage.PLAY_AGAIN);
         }
     }
 
-    private void exitProgram(ActionEvent event)
-    {
-        System.exit(1);
-    }
-
-
-    private void restartProgram(ActionEvent actionEvent)
-    {
-        startStage(1);
-    }
     private Text formatText(String stringArg)
     {
         Text text = new Text(stringArg);
         text.setTextAlignment(TextAlignment.CENTER);
         text.setFont(Font.font(FONT_NAME, FONT_SIZE_MEDIUM));
-        text.setFill(Paint.valueOf(HexCode.FONT.hexCode));
+        text.setFill(Paint.valueOf(HexCode.FONT.toString()));
         return text;
     }
 
@@ -123,7 +104,7 @@ public class GuessingGame extends Application
     {
         Button button = new Button(buttonName);
         button.setFont(Font.font(FONT_NAME));
-        button.setStyle("-fx-base: "+ HexCode.FONT.hexCode);
+        button.setStyle("-fx-base: "+ HexCode.FONT.toString());
         return button;
     }
 
@@ -139,33 +120,20 @@ public class GuessingGame extends Application
     private Scene formatScene()
     {
         return new Scene(rootNode,
-                SCENE_WIDTH,
-                SCENE_HEIGHT,
+                SceneSize.WIDTH.getLength(),
+                SceneSize.HEIGHT.getLength(),
                 Color.web(HexCode.BACKGROUND.hexCode)
         );
     }
 
-    private VBox formatTopHalf(int stageNumber)
+    private VBox formatTopHalf(Stage stage)
     {
-        if(stageNumber == Stage.FIRST_GUESS.stageNum)
+        switch (stage)
         {
-            displayText = formatText(Stage.FIRST_GUESS.stageText);
-        }
-        else if(stageNumber == Stage.TOO_LOW.stageNum)
-        {
-            displayText = formatText(Stage.TOO_LOW.stageText);
-        }
-        else if(stageNumber == Stage.TOO_HIGH.stageText)
-        {
-            displayText = formatText(Stage.TOO_HIGH.stageText);
-        }
-        else if(stageNumber == Stage.PLAY_AGAIN.stageText)
-        {
-            displayText = formatText(Stage.PLAY_AGAIN.stageText);
-        }
-        else
-        {
-            throw new IllegalArgumentException("You can only enter numeric values 1 to 4");
+            case FIRST_GUESS: displayText = formatText(Stage.FIRST_GUESS.toString()); break;
+            case TOO_LOW:     displayText = formatText(Stage.TOO_LOW.toString());     break;
+            case TOO_HIGH:    displayText = formatText(Stage.TOO_HIGH.toString());    break;
+            case PLAY_AGAIN:  displayText = formatText(Stage.PLAY_AGAIN.toString());  break;
         }
         VBox vBox = new VBox(displayText);
         vBox.setAlignment(Pos.CENTER);
@@ -173,78 +141,59 @@ public class GuessingGame extends Application
         return vBox;
     }
 
-    private HBox formatStage1BottomHalf()
+    private HBox formatBottomHalfGuessingStage()
     {
         stage1InputField = new TextField();
-        stage1GuessButton = formatButton(ButtonLabels.GUESS.buttonName);
-        stage1GuessButton.setOnAction(this::compareNumbers);
-        HBox hBox = formatHBox(stage1InputField, stage1GuessButton);
+        buttonGuessNumber = formatButton(ButtonLabel.GUESS.buttonName);
+        buttonGuessNumber.setOnAction(this::compareNumbers);
+        HBox hBox = formatHBox(stage1InputField, buttonGuessNumber);
         return hBox;
     }
 
-    private HBox formatStage4BottomHalf()
+    private HBox formatBottomHalfPlayAgainStage()
     {
-        stage2YesButton = formatButton(ButtonLabels.YES.buttonName);
-        stage2NoButton = formatButton(ButtonLabels.NO.buttonName);
-        stage2YesButton.setOnAction(this::restartProgram);
-        stage2NoButton.setOnAction(this::exitProgram);
-        HBox hBox = formatHBox(stage2NoButton, stage2YesButton);
+        buttonPlayAgainYes = formatButton(ButtonLabel.YES.buttonName);
+        buttonPlayAgainNo =  formatButton(ButtonLabel.NO.buttonName);
+        buttonPlayAgainYes.setOnAction( (event) -> startStage(Stage.FIRST_GUESS) );
+        buttonPlayAgainNo.setOnAction(  (event) -> System.exit(1) );
+        HBox hBox = formatHBox(buttonPlayAgainNo, buttonPlayAgainYes);
         return hBox;
     }
 
-
-    private void completePrimaryStage(Scene scene)
+    private void startStage(Stage stage)
     {
-        //primaryStage.stageText("JavaFx Guessing Game");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-    }
-
-    private void startStage(int stageNumber)
-    {
-        if(stageNumber == Stage.FIRST_GUESS.stageNum)
+        switch (stage)
         {
-            randomInt = ThreadLocalRandom.current().nextInt(1, 100);
-            System.out.println("Random int: "+randomInt);
-            nestedTopHalf = formatTopHalf(Stage.FIRST_GUESS.stageNum);
-            nestedBottomHalf = formatStage1BottomHalf();
+            case FIRST_GUESS:
+                randomInt = ThreadLocalRandom.current().nextInt(1, 100);
+                System.out.println("Random int: "+randomInt);
+                nestedTopHalf = formatTopHalf(Stage.FIRST_GUESS);
+                nestedBottomHalf = formatBottomHalfGuessingStage();
+                break;
+            case TOO_LOW:
+                nestedTopHalf = formatTopHalf(Stage.TOO_LOW);
+                nestedBottomHalf = formatBottomHalfGuessingStage();
+                break;
+            case TOO_HIGH:
+                nestedTopHalf = formatTopHalf(Stage.TOO_HIGH);
+                nestedBottomHalf = formatBottomHalfGuessingStage();
+                break;
+            case PLAY_AGAIN:
+                nestedTopHalf = formatTopHalf(Stage.PLAY_AGAIN);
+                nestedBottomHalf = formatBottomHalfPlayAgainStage();
+                break;
         }
-        else if(stageNumber == Stage.TOO_LOW.stageNum)
-        {
-            nestedTopHalf = formatTopHalf(Stage.TOO_LOW.stageNum);
-            nestedBottomHalf = formatStage1BottomHalf();
-        }
-        else if(stageNumber == Stage.TOO_HIGH.stageNum)
-        {
-            nestedTopHalf = formatTopHalf(Stage.TOO_HIGH.stageNum);
-            nestedBottomHalf = formatStage1BottomHalf();
-        }
-        else if(stageNumber == Stage.PLAY_AGAIN.stageNum)
-        {
-            nestedTopHalf = formatTopHalf(Stage.PLAY_AGAIN.stageNum);
-            nestedBottomHalf = formatStage4BottomHalf();
-        }
-        else
-        {
-            throw new IllegalArgumentException("You can only enter the integers 1 or 2");
-        }
-
         rootNode = formatBorderPane(nestedTopHalf, nestedBottomHalf);
         scene = formatScene();
-        completePrimaryStage(scene);
-    }
-
-    private void setPrimaryStage(javafx.stage.Stage primaryStage)
-    {
-        this.primaryStage = primaryStage;
-        startStage(Stage.FIRST_GUESS.stageNum);
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
     @Override
     public void start(javafx.stage.Stage primaryStage) throws Exception
     {
-        setPrimaryStage(primaryStage);
-
+        this.primaryStage = primaryStage;
+        startStage(Stage.FIRST_GUESS);
     }
 
     public static void main(String[] args)
